@@ -1,14 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:navigation_2/model/person.dart';
+import 'package:navigation_2/router/pagemanger.dart';
+import 'package:provider/provider.dart';
 
 class Home extends StatelessWidget {
   final Function(Person) ontap;
-  const Home({super.key,required this.ontap});
+  final Function() ontapform;
+  const Home({super.key,required this.ontap,required this.ontapform});
   @override
   Widget build(BuildContext context) {
     final data = personlis();
 
     return Scaffold(
+      appBar: AppBar(
+        actions: [
+          IconButton(onPressed: ()async{
+            final messenger = ScaffoldMessenger.of(context);
+            ontapform();
+            final data = await context.read<Pagemanger>().waitforresult();
+            messenger.showSnackBar(SnackBar(content: Text("nama anda adalah $data")));
+
+          },icon: Icon(Icons.settings),)
+        ],
+      ),
       body: SafeArea(
         child: ListView.builder(
           itemBuilder: (context, index) => Listtileitem(data: data[index],ontap:(data) => ontap(data),),
