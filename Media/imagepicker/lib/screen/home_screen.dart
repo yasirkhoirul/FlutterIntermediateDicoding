@@ -1,8 +1,10 @@
 import 'dart:io';
 
+import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:imagepicker/screen/camera_screen.dart';
 import 'package:provider/provider.dart';
 
 import '../provider/home_provider.dart';
@@ -37,10 +39,7 @@ class _HomePageState extends State<HomePage> {
               child: context.watch<HomeProvider>().imagePath == null
                   ? const Align(
                       alignment: Alignment.center,
-                      child: Icon(
-                        Icons.image,
-                        size: 100,
-                      ),
+                      child: Icon(Icons.image, size: 100),
                     )
                   : _showImage(),
             ),
@@ -63,7 +62,7 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ],
               ),
-            )
+            ),
           ],
         ),
       ),
@@ -80,50 +79,58 @@ class _HomePageState extends State<HomePage> {
     final bool islinux = defaultTargetPlatform == TargetPlatform.linux;
     final bool ismacos = defaultTargetPlatform == TargetPlatform.macOS;
 
-    if (islinux||ismacos) return;
+    if (islinux || ismacos) return;
     //
 
-    
     final XFile? picketfromgallery = await imagepicker.pickImage(
-      source: ImageSource.gallery
+      source: ImageSource.gallery,
     );
 
-    if (picketfromgallery!= null) {
+    if (picketfromgallery != null) {
       homeprovider.setGamber(picketfromgallery);
       homeprovider.setImagePath(picketfromgallery.path);
     }
   }
 
   _onCameraView() async {
-
     final isandroid = defaultTargetPlatform == TargetPlatform.android;
     final isios = defaultTargetPlatform == TargetPlatform.iOS;
 
-    final bool ismobile = !(isandroid||isios);
-    if(ismobile)return;
+    final bool ismobile = !(isandroid || isios);
+    if (ismobile) return;
 
     final ImagePicker picker = ImagePicker();
     final provider = context.read<HomeProvider>();
 
-    final XFile? imagefromcamera = await picker.pickImage(source: ImageSource.camera);
+    final XFile? imagefromcamera = await picker.pickImage(
+      source: ImageSource.camera,
+    );
 
-    if(imagefromcamera!=null){
+    if (imagefromcamera != null) {
       provider.setGamber(imagefromcamera);
       provider.setImagePath(imagefromcamera.path);
     }
   }
 
-  _onCustomCameraView() async {}
+  _onCustomCameraView() async {
+    final provider = context.read<HomeProvider>();
+    final navigator = Navigator.of(context);
+    final List<CameraDescription> cekKamera = await availableCameras();
+
+    final XFile? resultcamera = await navigator.push(
+      MaterialPageRoute(builder: (context) => CameraScreen(camera: cekKamera,)),
+    );
+
+    if (resultcamera!=null) {
+      provider.setGamber(resultcamera);
+      provider.setImagePath(resultcamera.path);
+    }
+  }
 
   Widget _showImage() {
     final imagepath = context.read<HomeProvider>().imagePath;
-    return kIsWeb?Image.network(
-          imagepath.toString(),
-          fit: BoxFit.contain,
-        )
-      : Image.file(
-          File(imagepath.toString()),
-          fit: BoxFit.contain,
-        );;
+    return kIsWeb
+        ? Image.network(imagepath.toString(), fit: BoxFit.contain)
+        : Image.file(File(imagepath.toString()), fit: BoxFit.contain);
   }
 }
