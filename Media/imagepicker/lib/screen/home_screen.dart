@@ -4,6 +4,7 @@ import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:imagepicker/provider/upload_provider.dart';
 import 'package:imagepicker/screen/camera_screen.dart';
 import 'package:provider/provider.dart';
 
@@ -25,7 +26,7 @@ class _HomePageState extends State<HomePage> {
         actions: [
           IconButton(
             onPressed: () => _onUpload(),
-            icon: const Icon(Icons.upload),
+            icon: context.watch<UploadProvider>().isuploading?const CircularProgressIndicator():const Icon(Icons.upload),
             tooltip: "Unggah",
           ),
         ],
@@ -69,7 +70,30 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  _onUpload() async {}
+  _onUpload() async {
+    final ScaffoldMessengerState scaffoldMessengerState = ScaffoldMessenger.of(context);
+    final provider = context.read<HomeProvider>();
+    final uploadprovider = context.read<UploadProvider>();
+    final imagepath = provider.imagePath;
+    final imagefile = provider.filegambar;
+    if(imagepath == null||imagefile== null)return;
+    
+    final filename = imagefile.name;
+    final bytess = await imagefile.readAsBytes();
+
+    await uploadprovider.upload(bytess, filename, "ini adalah deskripsi gambar");
+
+    if(uploadprovider.uploadresponse!= null){
+      provider.setImagePath(null);
+      provider.setGamber(null);
+    }
+
+    scaffoldMessengerState.showSnackBar(
+      SnackBar(content: Text(uploadprovider.message))
+    );
+
+
+  }
 
   _onGalleryView() async {
     final homeprovider = context.read<HomeProvider>();

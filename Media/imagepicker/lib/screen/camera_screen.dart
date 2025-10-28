@@ -9,7 +9,7 @@ class CameraScreen extends StatefulWidget{
   State<CameraScreen> createState() => _CameraScreenState();
 }
 
-class _CameraScreenState extends State<CameraScreen> {
+class _CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver {
   bool iscamerainitialization = false;
 
   CameraController? cameraController;
@@ -37,16 +37,33 @@ class _CameraScreenState extends State<CameraScreen> {
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    final CameraController? controller = cameraController;
+    if(controller == null || !controller.value.isInitialized){
+      return;
+    }
+    if(state == AppLifecycleState.inactive){
+      controller.dispose();
+    }else if (state == AppLifecycleState.resumed){
+      onNewcameraselected(controller.description);
+    }
+    super.didChangeAppLifecycleState(state);
+  }
+
+  @override
   void initState() {
     onNewcameraselected(widget.camera.first);
+    WidgetsBinding.instance.addObserver(this);
     super.initState();
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     cameraController?.dispose();
     super.dispose();
   }
+
 
   @override
   Widget build(BuildContext context) {

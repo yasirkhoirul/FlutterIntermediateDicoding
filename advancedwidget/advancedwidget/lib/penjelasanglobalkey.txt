@@ -1,0 +1,41 @@
+GlobalKey tidak "mengatakan ke semua" (broadcast) bahwa ada perubahan. Itu adalah tugas state management (seperti Provider, Bloc, dll.).
+
+GlobalKey adalah "pegangan" atau remote control yang dibuat khusus untuk satu TV (yaitu AnimatedList Anda).
+
+Mari kita bedah alurnya dengan analogi ini:
+
+    Membuat Remote Control: final globallistkey = GlobalKey<AnimatedListState>();
+
+        Artinya: "Saya membuat satu remote control (globallokey) yang hanya bisa bekerja untuk mengontrol 'mesin' (State) dari sebuah AnimatedList."
+
+    Memasangkan Remote ke TV: AnimatedList( key: globallistkey, ... )
+
+        Artinya: "Saya memasang 'sensor' remote ini ke satu TV spesifik, yaitu AnimatedList ini. Sekarang remote ini terhubung."
+
+    Saat Tombol Ditekan (di IconButton):
+
+        angka.insert(index, randomangka);
+
+            Artinya: "Saya mengubah data di dalam variabel angka."
+
+            PENTING: AnimatedList (si TV) tidak tahu Anda melakukan ini. Dia tidak secara otomatis "menonton" variabel angka Anda. Dia hanya menampilkan apa yang terakhir kali Anda suruh tampilkan (initialItemCount).
+
+        globallistkey.currentState?.insertItem(index);
+
+            Artinya: Ini adalah perintah langsung menggunakan remote control.
+
+            globallistkey: "Ambil remote control yang sudah terpasang tadi."
+
+            .currentState: "Akses 'mesin' atau 'jeroan' (State) dari TV (AnimatedList) yang terhubung dengan remote ini."
+
+            ?: Tanda aman. "Jika mesinnya ada dan tidak rusak..."
+
+            .insertItem(index): "...Tekan tombol insertItem di remote itu! Beri tahu si AnimatedList untuk menjalankan animasi penambahan satu item baru di index ke-0."
+
+Kesimpulan
+
+Jadi, globallistkey.currentState?.insertItem(index); bukan memberi tahu "status global".
+
+Itu adalah cara IconButton (yang ada di luar AnimatedList) untuk memberi perintah langsung ke satu AnimatedList (yang ada di dalam) dan berkata:
+
+"Hei AnimatedList, saya (si IconButton) baru saja menambahkan data baru ke angka[0]. Saya perintahkan kamu sekarang untuk menjalankan animasimu dan menampilkan item baru itu."
