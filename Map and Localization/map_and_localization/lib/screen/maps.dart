@@ -56,6 +56,7 @@ class _MapsState extends State<Maps> {
           child: Stack(
             children: [
               GoogleMap(
+                
                 myLocationEnabled: true,
                 myLocationButtonEnabled: false,
                 zoomControlsEnabled: false,
@@ -71,6 +72,9 @@ class _MapsState extends State<Maps> {
                   zoom: 18,
                   target: latlang,
                 ),
+                onLongPress: (argument) {
+                  onLongPressGooglemaps(argument);
+                },
               ),
               Positioned(
                 right: 16,
@@ -145,5 +149,12 @@ class _MapsState extends State<Maps> {
       markers.clear();
       markers.add(marker);
     });
+  }
+
+  void onLongPressGooglemaps(LatLng latlang)async{
+    definemarker(latlang);
+    mapscontroller.animateCamera(
+      CameraUpdate.newLatLng(latlang)
+    );
   }
 }
