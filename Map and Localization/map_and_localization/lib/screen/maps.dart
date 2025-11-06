@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
+import 'package:geocoding/geocoding.dart' as geo;
 
 class Maps extends StatefulWidget {
   const Maps({super.key});
@@ -10,6 +11,7 @@ class Maps extends StatefulWidget {
 }
 
 class _MapsState extends State<Maps> {
+  geo.Placemark? placemark;
   final tourismPlaces = const [
     LatLng(-6.8168954, 107.6151046),
     LatLng(-6.8331128, 107.6048483),
@@ -18,6 +20,7 @@ class _MapsState extends State<Maps> {
     LatLng(-6.780725, 107.637409),
   ];
   late GoogleMapController mapscontroller;
+
   final Set<Marker> markers = {};
   final latlang = LatLng(-6.8957473, 107.6337669);
   void addmymarker() {
@@ -56,7 +59,6 @@ class _MapsState extends State<Maps> {
           child: Stack(
             children: [
               GoogleMap(
-                
                 myLocationEnabled: true,
                 myLocationButtonEnabled: false,
                 zoomControlsEnabled: false,
@@ -137,24 +139,51 @@ class _MapsState extends State<Maps> {
 
     locationData = await location.getLocation();
     final latlang = LatLng(locationData.latitude!, locationData.longitude!);
-    definemarker(latlang);
-    mapscontroller.animateCamera(
-      CameraUpdate.newLatLng(latlang)
+
+    //get alamat
+
+    final info = await geo.placemarkFromCoordinates(
+      latlang.latitude,
+      latlang.longitude,
     );
+    final place = info[0];
+    final addres =
+        "${place.subLocality}, ${place.locality}, ${place.postalCode},${place.country}";
+    setState(() {
+      placemark = place;
+    });
+
+    definemarker(latlang, place.street!, addres);
+    mapscontroller.animateCamera(CameraUpdate.newLatLng(latlang));
   }
 
-  void definemarker(LatLng latlang) {
-    final marker = Marker(markerId: MarkerId("mylocation"), position: latlang,);
+  void definemarker(LatLng latlang, String street, String addres) {
+    final marker = Marker(
+      markerId: MarkerId("mylocation"),
+      position: latlang,
+      infoWindow: InfoWindow(title: street, snippet: addres),
+    );
     setState(() {
       markers.clear();
       markers.add(marker);
     });
   }
 
-  void onLongPressGooglemaps(LatLng latlang)async{
-    definemarker(latlang);
-    mapscontroller.animateCamera(
-      CameraUpdate.newLatLng(latlang)
+  void onLongPressGooglemaps(LatLng latlang) async {
+    final info = await geo.placemarkFromCoordinates(
+      latlang.latitude,
+      latlang.longitude,
     );
+    final place = info[0];
+    final street = place.street!;
+    final address =
+        '${place.subLocality}, ${place.locality}, ${place.postalCode}, ${place.country}';
+    setState(() {
+      placemark = place;
+    });
+
+    definemarker(latlang, street, address);
+
+    mapscontroller.animateCamera(CameraUpdate.newLatLng(latlang));
   }
 }
